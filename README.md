@@ -87,7 +87,7 @@ npm start
 ---
 
 ## ✏️ Author
-- **Bogdan** — (your GitHub link if you’d like to add)
+- **Bogdusik**
 
 ---
 
