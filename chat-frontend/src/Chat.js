@@ -24,6 +24,13 @@ export default function Chat() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    fetch('http://localhost:8080/api/messages')
+      .then(res => res.json())
+      .then(data => setMessages(data))
+      .catch(err => console.error('Failed to load messages', err));
+  }, []);
+
+  useEffect(() => {
     const client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
       onConnect: () => {
