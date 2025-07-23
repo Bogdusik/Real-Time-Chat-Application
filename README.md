@@ -16,6 +16,7 @@ This is a simple yet powerful real-time chat application that allows users to se
 - Messages stored in a PostgreSQL database
 - WebSocket server configured with Spring Boot
 - Auto-scroll to the newest message
+- Load previous messages on startup via REST API
 - Responsive design with Material-UI
 
 ---
@@ -42,12 +43,14 @@ This is a simple yet powerful real-time chat application that allows users to se
    - Listens for incoming messages on `/app/sendMessage`
    - Saves each message into the PostgreSQL database
    - Broadcasts new messages to `/topic/messages`
+   - Exposes REST endpoint `/api/messages` to fetch stored messages
 
 2. **Frontend**
    - Connects to the backend using WebSocket
    - Subscribes to `/topic/messages` to receive real-time updates
    - Sends messages using the STOMP protocol
    - Displays messages in a styled chat card
+   - Fetches existing messages on page load
 
 ---
 
