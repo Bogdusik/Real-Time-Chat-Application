@@ -10,26 +10,14 @@ jest.mock('@stomp/stompjs');
 import '@testing-library/jest-dom';
 
 // Mock fetch globally - must be before component imports
-if (typeof global.fetch === 'undefined') {
-  global.fetch = jest.fn(() => 
-    Promise.resolve({
-      json: () => Promise.resolve([]),
-      ok: true,
-      status: 200,
-      statusText: 'OK'
-    })
-  );
-} else {
-  // Reset fetch mock
-  global.fetch.mockImplementation(() => 
-    Promise.resolve({
-      json: () => Promise.resolve([]),
-      ok: true,
-      status: 200,
-      statusText: 'OK'
-    })
-  );
-}
+global.fetch = jest.fn(() => 
+  Promise.resolve({
+    json: () => Promise.resolve([]),
+    ok: true,
+    status: 200,
+    statusText: 'OK'
+  })
+);
 
 // Mock scrollIntoView for all tests
 Element.prototype.scrollIntoView = jest.fn();
