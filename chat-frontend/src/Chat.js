@@ -24,52 +24,46 @@ export default function Chat() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    // Ensure fetch is available (for tests)
-    if (typeof fetch !== 'undefined') {
-      fetch('http://localhost:8080/api/messages')
-        .then(res => res.json())
-        .then(data => setMessages(data))
-        .catch(err => console.error('Failed to load messages', err));
-    }
+    fetch('http://localhost:8080/api/messages')
+      .then(res => res.json())
+      .then(data => setMessages(data))
+      .catch(err => console.error('Failed to load messages', err));
   }, []);
 
   useEffect(() => {
-    // Ensure Client is available (for tests)
-    if (typeof Client !== 'undefined') {
-      const client = new Client({
-        webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-        onConnect: () => {
-          console.log('✅ Connected to STOMP!');
-          setConnected(true);
-          client.subscribe('/topic/messages', (msg) => {
-            const messageOutput = JSON.parse(msg.body);
-            setMessages(prev => [...prev, messageOutput]);
-          });
-        },
-        onDisconnect: () => {
-          console.log('❌ STOMP disconnected.');
-          setConnected(false);
-        },
-        onStompError: (frame) => {
-          console.error('Broker error: ', frame.headers['message']);
-        },
-        debug: (str) => {
-          console.log(str);
-        }
-      });
-      
-      // Check if activate method exists before calling
-      if (client && typeof client.activate === 'function') {
-        client.activate();
-        stompClient = client;
+    const client = new Client({
+      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      onConnect: () => {
+        console.log('✅ Connected to STOMP!');
+        setConnected(true);
+        client.subscribe('/topic/messages', (msg) => {
+          const messageOutput = JSON.parse(msg.body);
+          setMessages(prev => [...prev, messageOutput]);
+        });
+      },
+      onDisconnect: () => {
+        console.log('❌ STOMP disconnected.');
+        setConnected(false);
+      },
+      onStompError: (frame) => {
+        console.error('Broker error: ', frame.headers['message']);
+      },
+      debug: (str) => {
+        console.log(str);
       }
-
-      return () => {
-        if (client && typeof client.deactivate === 'function') {
-          client.deactivate();
-        }
-      };
+    });
+    
+    // Check if activate method exists before calling (for tests)
+    if (client && typeof client.activate === 'function') {
+      client.activate();
+      stompClient = client;
     }
+
+    return () => {
+      if (client && typeof client.deactivate === 'function') {
+        client.deactivate();
+      }
+    };
   }, []);
 
   useEffect(() => {
