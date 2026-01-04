@@ -1,3 +1,36 @@
+// Mock STOMP and SockJS before imports
+jest.mock('sockjs-client', () => {
+  return jest.fn(() => ({
+    onopen: null,
+    onmessage: null,
+    onclose: null,
+    send: jest.fn(),
+    close: jest.fn()
+  }));
+});
+
+jest.mock('@stomp/stompjs', () => ({
+  Client: jest.fn().mockImplementation(() => ({
+    webSocketFactory: null,
+    onConnect: null,
+    onDisconnect: null,
+    onStompError: null,
+    debug: jest.fn(),
+    activate: jest.fn(),
+    deactivate: jest.fn(),
+    connected: true,
+    publish: jest.fn(),
+    subscribe: jest.fn()
+  }))
+}));
+
+// scrollIntoView is mocked in setupTests.js
+
+// Mock fetch
+global.fetch = jest.fn().mockResolvedValue({
+  json: async () => []
+});
+
 import { render, screen } from '@testing-library/react';
 import App from './App';
 

@@ -59,23 +59,25 @@ describe('Message Model', () => {
       };
 
       const mockUser = { id: 1, username: 'testuser' };
-      const mockMessage = {
+      const mockInsertResult = {
         id: 1,
         content: 'New message',
         timestamp: new Date(),
-        user: mockUser
+        user_id: 1
       };
 
       pool.query
         .mockResolvedValueOnce({ rows: [{ id: 1 }] }) // User exists check
-        .mockResolvedValueOnce({ rows: [mockMessage] }); // Message insert
+        .mockResolvedValueOnce({ rows: [mockInsertResult] }) // Message insert
+        .mockResolvedValueOnce({ rows: [{ id: 1, username: 'testuser' }] }); // User fetch
 
       const message = await Message.create(messageData);
 
       expect(message).toHaveProperty('id');
       expect(message.content).toBe('New message');
       expect(message.user).toEqual(mockUser);
-      expect(pool.query).toHaveBeenCalledTimes(2);
+      // Should be called 3 times: user check, insert, user fetch
+      expect(pool.query).toHaveBeenCalledTimes(3);
     });
 
     it('should create a message without user', async () => {
@@ -84,15 +86,15 @@ describe('Message Model', () => {
         user: null
       };
 
-      const mockMessage = {
+      const mockInsertResult = {
         id: 1,
         content: 'Message without user',
         timestamp: new Date(),
-        user: null
+        user_id: null
       };
 
       pool.query.mockResolvedValue({
-        rows: [mockMessage]
+        rows: [mockInsertResult]
       });
 
       const message = await Message.create(messageData);
@@ -100,6 +102,7 @@ describe('Message Model', () => {
       expect(message).toHaveProperty('id');
       expect(message.content).toBe('Message without user');
       expect(message.user).toBeNull();
+      expect(pool.query).toHaveBeenCalledTimes(1); // Only insert, no user fetch
     });
   });
 });

@@ -17,11 +17,13 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Initialize database
-initializeDatabase().catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
-});
+// Initialize database (skip in test environment)
+if (process.env.NODE_ENV !== 'test') {
+  initializeDatabase().catch(err => {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
+  });
+}
 
 // Routes
 app.get('/api/messages', chatController.getMessages);
@@ -48,11 +50,13 @@ websocketHandler(sockjsServer, chatController);
 // Install SockJS handlers
 sockjsServer.installHandlers(server, { prefix: '/ws' });
 
-// Start server
-server.listen(PORT, () => {
-  console.log(`🚀 Chat server running on port ${PORT}`);
-  console.log(`📡 WebSocket endpoint: http://localhost:${PORT}/ws`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-});
+// Start server only if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`🚀 Chat server running on port ${PORT}`);
+    console.log(`📡 WebSocket endpoint: http://localhost:${PORT}/ws`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  });
+}
 
 module.exports = app;
