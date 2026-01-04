@@ -1,19 +1,4 @@
-// jest-dom adds custom jest matchers for asserting on DOM nodes.
-// allows you to do things like:
-// expect(element).toHaveTextContent(/react/i)
-// learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom';
-
-// Mock fetch globally
-global.fetch = jest.fn(() => 
-  Promise.resolve({
-    json: () => Promise.resolve([]),
-    ok: true,
-    status: 200,
-    statusText: 'OK'
-  })
-);
-
+// IMPORTANT: jest.mock() must be called BEFORE any imports
 // Mock SockJS globally
 jest.mock('sockjs-client', () => {
   return jest.fn(() => ({
@@ -28,26 +13,44 @@ jest.mock('sockjs-client', () => {
 
 // Mock STOMP Client globally
 jest.mock('@stomp/stompjs', () => {
-  const mockActivate = jest.fn();
-  const mockDeactivate = jest.fn();
-  const mockPublish = jest.fn();
-  const mockSubscribe = jest.fn();
-  
   return {
-    Client: jest.fn().mockImplementation(() => ({
-      webSocketFactory: null,
-      onConnect: null,
-      onDisconnect: null,
-      onStompError: null,
-      debug: jest.fn(),
-      activate: mockActivate,
-      deactivate: mockDeactivate,
-      connected: true,
-      publish: mockPublish,
-      subscribe: mockSubscribe
-    }))
+    Client: jest.fn().mockImplementation(() => {
+      const mockActivate = jest.fn();
+      const mockDeactivate = jest.fn();
+      const mockPublish = jest.fn();
+      const mockSubscribe = jest.fn();
+      
+      return {
+        webSocketFactory: null,
+        onConnect: null,
+        onDisconnect: null,
+        onStompError: null,
+        debug: jest.fn(),
+        activate: mockActivate,
+        deactivate: mockDeactivate,
+        connected: true,
+        publish: mockPublish,
+        subscribe: mockSubscribe
+      };
+    })
   };
 });
+
+// jest-dom adds custom jest matchers for asserting on DOM nodes.
+// allows you to do things like:
+// expect(element).toHaveTextContent(/react/i)
+// learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom';
+
+// Mock fetch globally - must be after jest.mock() calls but before component imports
+global.fetch = jest.fn(() => 
+  Promise.resolve({
+    json: () => Promise.resolve([]),
+    ok: true,
+    status: 200,
+    statusText: 'OK'
+  })
+);
 
 // Mock scrollIntoView for all tests
 Element.prototype.scrollIntoView = jest.fn();
