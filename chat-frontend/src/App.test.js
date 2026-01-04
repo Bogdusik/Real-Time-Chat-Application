@@ -1,3 +1,12 @@
+// Mock fetch before any imports
+global.fetch = jest.fn(() => 
+  Promise.resolve({
+    json: () => Promise.resolve([]),
+    ok: true,
+    status: 200
+  })
+);
+
 // Mock STOMP and SockJS before imports
 jest.mock('sockjs-client', () => {
   return jest.fn(() => ({
@@ -9,6 +18,9 @@ jest.mock('sockjs-client', () => {
   }));
 });
 
+const mockActivate = jest.fn();
+const mockDeactivate = jest.fn();
+
 jest.mock('@stomp/stompjs', () => ({
   Client: jest.fn().mockImplementation(() => ({
     webSocketFactory: null,
@@ -16,20 +28,13 @@ jest.mock('@stomp/stompjs', () => ({
     onDisconnect: null,
     onStompError: null,
     debug: jest.fn(),
-    activate: jest.fn(),
-    deactivate: jest.fn(),
+    activate: mockActivate,
+    deactivate: mockDeactivate,
     connected: true,
     publish: jest.fn(),
     subscribe: jest.fn()
   }))
 }));
-
-// scrollIntoView is mocked in setupTests.js
-
-// Mock fetch
-global.fetch = jest.fn().mockResolvedValue({
-  json: async () => []
-});
 
 import { render, screen } from '@testing-library/react';
 import App from './App';
