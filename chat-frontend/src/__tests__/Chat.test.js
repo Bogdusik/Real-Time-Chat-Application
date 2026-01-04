@@ -1,9 +1,4 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import Chat from '../Chat';
-
-// Mock SockJS and STOMP
+// Mock SockJS and STOMP before imports
 jest.mock('sockjs-client', () => {
   return jest.fn(() => ({
     onopen: null,
@@ -14,27 +9,42 @@ jest.mock('sockjs-client', () => {
   }));
 });
 
+const mockActivate = jest.fn();
+const mockDeactivate = jest.fn();
+const mockPublish = jest.fn();
+const mockSubscribe = jest.fn();
+
 jest.mock('@stomp/stompjs', () => ({
   Client: jest.fn().mockImplementation(() => ({
     webSocketFactory: null,
     onConnect: null,
     onDisconnect: null,
     onStompError: null,
-    debug: null,
-    activate: jest.fn(),
-    deactivate: jest.fn(),
+    debug: jest.fn(),
+    activate: mockActivate,
+    deactivate: mockDeactivate,
     connected: true,
-    publish: jest.fn(),
-    subscribe: jest.fn()
+    publish: mockPublish,
+    subscribe: mockSubscribe
   }))
 }));
+
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import Chat from '../Chat';
 
 // Mock fetch
 global.fetch = jest.fn();
 
+// scrollIntoView is mocked in setupTests.js
+
 describe('Chat Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockActivate.mockClear();
+    mockDeactivate.mockClear();
+    mockPublish.mockClear();
+    mockSubscribe.mockClear();
     fetch.mockResolvedValue({
       json: async () => []
     });
