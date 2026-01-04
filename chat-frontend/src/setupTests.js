@@ -3,21 +3,25 @@
 jest.mock('sockjs-client');
 jest.mock('@stomp/stompjs');
 
+// Mock fetch BEFORE any imports
+// This must be done at the module level, not inside a function
+Object.defineProperty(global, 'fetch', {
+  writable: true,
+  value: jest.fn(() => 
+    Promise.resolve({
+      json: () => Promise.resolve([]),
+      ok: true,
+      status: 200,
+      statusText: 'OK'
+    })
+  )
+});
+
 // jest-dom adds custom jest matchers for asserting on DOM nodes.
 // allows you to do things like:
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
-
-// Mock fetch globally - must be before component imports
-global.fetch = jest.fn(() => 
-  Promise.resolve({
-    json: () => Promise.resolve([]),
-    ok: true,
-    status: 200,
-    statusText: 'OK'
-  })
-);
 
 // Mock scrollIntoView for all tests
 Element.prototype.scrollIntoView = jest.fn();
