@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: chatdb
+          POSTGRES_USER: chatuser
+          POSTGRES_PASSWORD: chatpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: server/package-lock.json
+    
+    - name: Install backend dependencies
+      run: cd server && npm ci
+    
+    - name: Run backend tests
+      run: cd server && npm test
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: chatdb
+        DB_USER: chatuser
+        DB_PASSWORD: chatpass
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        cache-dependency-path: chat-frontend/package-lock.json
+    
+    - name: Install frontend dependencies
+      run: cd chat-frontend && npm ci
+    
+    - name: Run frontend tests
+      run: cd chat-frontend && npm test -- --watchAll=false
+      env:
+        CI: true
+    
+    - name: Build frontend
+      run: cd chat-frontend && npm run build
+      env:
+        CI: true
+        SKIP_PREFLIGHT_CHECK: true
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+    
+    - name: Install backend dependencies
+      run: cd server && npm ci
+    
+    - name: Install frontend dependencies
+      run: cd chat-frontend && npm ci
+    
+    - name: Build frontend
+      run: cd chat-frontend && npm run build
+      env:
+        CI: true
+        SKIP_PREFLIGHT_CHECK: true
+    
+    - name: Verify builds
+      run: |
+        if [ ! -d "server/node_modules" ]; then
+          echo "Backend node_modules not found!"
+          exit 1
+        fi
+        if [ ! -d "chat-frontend/build" ]; then
+          echo "Frontend build directory not found!"
+          exit 1
+        fi
+        echo "Build successful!"
+
