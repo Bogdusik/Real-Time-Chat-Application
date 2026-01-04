@@ -4,6 +4,51 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Mock fetch globally
+global.fetch = jest.fn(() => 
+  Promise.resolve({
+    json: () => Promise.resolve([]),
+    ok: true,
+    status: 200,
+    statusText: 'OK'
+  })
+);
+
+// Mock SockJS globally
+jest.mock('sockjs-client', () => {
+  return jest.fn(() => ({
+    onopen: null,
+    onmessage: null,
+    onclose: null,
+    send: jest.fn(),
+    close: jest.fn(),
+    readyState: 1
+  }));
+});
+
+// Mock STOMP Client globally
+jest.mock('@stomp/stompjs', () => {
+  const mockActivate = jest.fn();
+  const mockDeactivate = jest.fn();
+  const mockPublish = jest.fn();
+  const mockSubscribe = jest.fn();
+  
+  return {
+    Client: jest.fn().mockImplementation(() => ({
+      webSocketFactory: null,
+      onConnect: null,
+      onDisconnect: null,
+      onStompError: null,
+      debug: jest.fn(),
+      activate: mockActivate,
+      deactivate: mockDeactivate,
+      connected: true,
+      publish: mockPublish,
+      subscribe: mockSubscribe
+    }))
+  };
+});
+
 // Mock scrollIntoView for all tests
 Element.prototype.scrollIntoView = jest.fn();
 
