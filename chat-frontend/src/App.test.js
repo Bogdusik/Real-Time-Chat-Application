@@ -26,9 +26,9 @@ test('renders chat application', async () => {
   }
 
   render(<App />);
-  // App renders Chat component, so we just check that it renders without errors
+  // App renders Chat component, so we check that it renders the chat interface
   await waitFor(() => {
-    const container = screen.getByRole('main') || document.body;
-    expect(container).toBeInTheDocument();
+    // Check for the chat title which is always rendered
+    expect(screen.getByText(/chat using websocket/i)).toBeInTheDocument();
   });
 });
