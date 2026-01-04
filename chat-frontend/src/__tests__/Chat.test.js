@@ -1,3 +1,12 @@
+// Mock fetch before any imports
+global.fetch = jest.fn(() => 
+  Promise.resolve({
+    json: () => Promise.resolve([]),
+    ok: true,
+    status: 200
+  })
+);
+
 // Mock SockJS and STOMP before imports
 jest.mock('sockjs-client', () => {
   return jest.fn(() => ({
@@ -33,9 +42,6 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import Chat from '../Chat';
 
-// Mock fetch
-global.fetch = jest.fn();
-
 // scrollIntoView is mocked in setupTests.js
 
 describe('Chat Component', () => {
@@ -45,14 +51,20 @@ describe('Chat Component', () => {
     mockDeactivate.mockClear();
     mockPublish.mockClear();
     mockSubscribe.mockClear();
-    fetch.mockResolvedValue({
-      json: async () => []
-    });
+    fetch.mockImplementation(() => 
+      Promise.resolve({
+        json: () => Promise.resolve([]),
+        ok: true,
+        status: 200
+      })
+    );
   });
 
-  it('renders chat interface', () => {
+  it('renders chat interface', async () => {
     render(<Chat />);
-    expect(screen.getByText(/chat using websocket/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/chat using websocket/i)).toBeInTheDocument();
+    });
   });
 
   it('loads messages on mount', async () => {
@@ -65,9 +77,13 @@ describe('Chat Component', () => {
       }
     ];
 
-    fetch.mockResolvedValue({
-      json: async () => mockMessages
-    });
+    fetch.mockImplementation(() => 
+      Promise.resolve({
+        json: () => Promise.resolve(mockMessages),
+        ok: true,
+        status: 200
+      })
+    );
 
     render(<Chat />);
 
@@ -76,10 +92,12 @@ describe('Chat Component', () => {
     });
   });
 
-  it('displays connection status', () => {
+  it('displays connection status', async () => {
     render(<Chat />);
     // Component should render connection status
-    expect(screen.getByText(/chat using websocket/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/chat using websocket/i)).toBeInTheDocument();
+    });
   });
 });
 
