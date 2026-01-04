@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders chat application', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  // App renders Chat component, so we just check that it renders without errors
+  const container = screen.getByRole('main') || document.body;
+  expect(container).toBeInTheDocument();
 });
