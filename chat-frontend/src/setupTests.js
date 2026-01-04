@@ -1,40 +1,7 @@
 // IMPORTANT: jest.mock() must be called BEFORE any imports
-// Mock SockJS globally
-jest.mock('sockjs-client', () => {
-  return jest.fn(() => ({
-    onopen: null,
-    onmessage: null,
-    onclose: null,
-    send: jest.fn(),
-    close: jest.fn(),
-    readyState: 1
-  }));
-});
-
-// Mock STOMP Client globally
-jest.mock('@stomp/stompjs', () => {
-  return {
-    Client: jest.fn().mockImplementation(() => {
-      const mockActivate = jest.fn();
-      const mockDeactivate = jest.fn();
-      const mockPublish = jest.fn();
-      const mockSubscribe = jest.fn();
-      
-      return {
-        webSocketFactory: null,
-        onConnect: null,
-        onDisconnect: null,
-        onStompError: null,
-        debug: jest.fn(),
-        activate: mockActivate,
-        deactivate: mockDeactivate,
-        connected: true,
-        publish: mockPublish,
-        subscribe: mockSubscribe
-      };
-    })
-  };
-});
+// Use __mocks__ directory for automatic mocking
+jest.mock('sockjs-client');
+jest.mock('@stomp/stompjs');
 
 // jest-dom adds custom jest matchers for asserting on DOM nodes.
 // allows you to do things like:
@@ -42,15 +9,27 @@ jest.mock('@stomp/stompjs', () => {
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-// Mock fetch globally - must be after jest.mock() calls but before component imports
-global.fetch = jest.fn(() => 
-  Promise.resolve({
-    json: () => Promise.resolve([]),
-    ok: true,
-    status: 200,
-    statusText: 'OK'
-  })
-);
+// Mock fetch globally - must be before component imports
+if (typeof global.fetch === 'undefined') {
+  global.fetch = jest.fn(() => 
+    Promise.resolve({
+      json: () => Promise.resolve([]),
+      ok: true,
+      status: 200,
+      statusText: 'OK'
+    })
+  );
+} else {
+  // Reset fetch mock
+  global.fetch.mockImplementation(() => 
+    Promise.resolve({
+      json: () => Promise.resolve([]),
+      ok: true,
+      status: 200,
+      statusText: 'OK'
+    })
+  );
+}
 
 // Mock scrollIntoView for all tests
 Element.prototype.scrollIntoView = jest.fn();
