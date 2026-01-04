@@ -21,7 +21,7 @@ This is a simple yet powerful real-time chat application that allows users to se
 - Real-time messaging without page reload
 - User-friendly React interface
 - Messages stored in a PostgreSQL database
-- WebSocket server configured with Spring Boot
+- WebSocket server configured with Node.js/Express and SockJS
 - Auto-scroll to the newest message
 - Load previous messages on startup via REST API
 - Responsive design with Material-UI
