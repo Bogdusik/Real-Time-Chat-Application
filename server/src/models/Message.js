@@ -52,17 +52,29 @@ class Message {
         id,
         content,
         timestamp,
-        (SELECT json_build_object('id', id, 'username', username) FROM "user" WHERE id = $2) as user
+        user_id
     `;
 
     const result = await pool.query(query, [content, finalUserId]);
     const row = result.rows[0];
     
+    // Fetch user data if user_id exists
+    let userData = null;
+    if (row.user_id) {
+      const userResult = await pool.query('SELECT id, username FROM "user" WHERE id = $1', [row.user_id]);
+      if (userResult.rows.length > 0) {
+        userData = {
+          id: userResult.rows[0].id,
+          username: userResult.rows[0].username
+        };
+      }
+    }
+    
     return {
       id: row.id,
       content: row.content,
       timestamp: row.timestamp,
-      user: row.user || null
+      user: userData
     };
   }
 }
