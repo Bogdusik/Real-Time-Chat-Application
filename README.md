@@ -120,4 +120,4 @@ Real-Time-Chat-Application/
 - **Testing Strategies**: Wrote comprehensive tests for both backend (API endpoints, WebSocket handlers) and frontend (React components, user interactions)
 - **Docker Deployment**: Containerized full-stack application with Docker Compose, including database, backend, and frontend services
 
-Fork it, use it, improve it — open to PRs!
+Fork it, use it, improve it - open to PRs!
