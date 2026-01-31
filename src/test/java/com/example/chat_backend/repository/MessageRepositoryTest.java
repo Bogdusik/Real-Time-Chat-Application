@@ -2,6 +2,7 @@ package com.example.chat_backend.repository;
 
 import com.example.chat_backend.entity.Message;
 import com.example.chat_backend.entity.User;
+import com.example.chat_backend.TestConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ class MessageRepositoryTest {
     @BeforeEach
     void setUp() {
         testUser = new User();
-        testUser.setUsername("testUser");
+        testUser.setUsername(TestConstants.TEST_USERNAME);
         testUser = entityManager.persistAndFlush(testUser);
     }
 
@@ -38,7 +39,7 @@ class MessageRepositoryTest {
     void testSaveAndFindMessage() {
         // Given
         Message message = new Message();
-        message.setContent("Test message");
+        message.setContent(TestConstants.TEST_MESSAGE);
         message.setTimestamp(LocalDateTime.now());
         message.setUser(testUser);
 
@@ -48,7 +49,7 @@ class MessageRepositoryTest {
 
         // Then
         assertNotNull(savedMessage.getId());
-        assertEquals("Test message", savedMessage.getContent());
+        assertEquals(TestConstants.TEST_MESSAGE, savedMessage.getContent());
         assertEquals(testUser, savedMessage.getUser());
     }
 

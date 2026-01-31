@@ -3,6 +3,8 @@ package com.example.chat_backend.entity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
+import com.example.chat_backend.TestConstants;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserTest {
@@ -18,11 +20,11 @@ class UserTest {
     void testUserCreation() {
         // Given & When
         user.setId(1L);
-        user.setUsername("testUser");
+        user.setUsername(TestConstants.TEST_USERNAME);
 
         // Then
         assertEquals(1L, user.getId());
-        assertEquals("testUser", user.getUsername());
+        assertEquals(TestConstants.TEST_USERNAME, user.getUsername());
     }
 
     @Test
@@ -59,7 +61,7 @@ class UserTest {
     @Test
     void testUserWithSpecialCharacters() {
         // Given
-        String specialUsername = "user@123_$%";
+        String specialUsername = TestConstants.SPECIAL_CHARS_USERNAME;
         
         // When
         user.setUsername(specialUsername);
@@ -93,12 +95,12 @@ class UserTest {
     @Test
     void testUserUsernameUpdate() {
         // Given
-        user.setUsername("oldUsername");
+        user.setUsername(TestConstants.OLD_USERNAME);
         
         // When
-        user.setUsername("newUsername");
+        user.setUsername(TestConstants.NEW_USERNAME);
         
         // Then
-        assertEquals("newUsername", user.getUsername());
+        assertEquals(TestConstants.NEW_USERNAME, user.getUsername());
     }
 }
