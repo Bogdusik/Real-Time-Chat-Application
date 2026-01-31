@@ -17,6 +17,10 @@
     "sockjs-client": "^1.6.1",
     "web-vitals": "^2.1.4"
   },
+  "overrides": {
+    "qs": "6.12.1",
+    "lodash": "4.17.21"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

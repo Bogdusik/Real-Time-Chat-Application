@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import java.time.LocalDateTime;
 
+import com.example.chat_backend.TestConstants;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class MessageTest {
@@ -17,7 +19,7 @@ class MessageTest {
         message = new Message();
         user = new User();
         user.setId(1L);
-        user.setUsername("testUser");
+        user.setUsername(TestConstants.TEST_USERNAME);
         testTime = LocalDateTime.now();
     }
 
@@ -25,13 +27,13 @@ class MessageTest {
     void testMessageCreation() {
         // Given & When
         message.setId(1L);
-        message.setContent("Test message content");
+        message.setContent(TestConstants.TEST_MESSAGE_CONTENT);
         message.setTimestamp(testTime);
         message.setUser(user);
 
         // Then
         assertEquals(1L, message.getId());
-        assertEquals("Test message content", message.getContent());
+        assertEquals(TestConstants.TEST_MESSAGE_CONTENT, message.getContent());
         assertEquals(testTime, message.getTimestamp());
         assertEquals(user, message.getUser());
     }
@@ -71,7 +73,7 @@ class MessageTest {
         // Given
         User testUser = new User();
         testUser.setId(2L);
-        testUser.setUsername("anotherUser");
+        testUser.setUsername(TestConstants.ANOTHER_USERNAME);
         
         // When
         message.setUser(testUser);
@@ -79,7 +81,7 @@ class MessageTest {
         // Then
         assertEquals(testUser, message.getUser());
         assertEquals(2L, message.getUser().getId());
-        assertEquals("anotherUser", message.getUser().getUsername());
+        assertEquals(TestConstants.ANOTHER_USERNAME, message.getUser().getUsername());
     }
 
     @Test

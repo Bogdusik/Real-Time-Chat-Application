@@ -1,6 +1,7 @@
 package com.example.chat_backend.repository;
 
 import com.example.chat_backend.entity.User;
+import com.example.chat_backend.TestConstants;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -25,7 +26,7 @@ class UserRepositoryTest {
     void testSaveAndFindUser() {
         // Given
         User user = new User();
-        user.setUsername("testUser");
+        user.setUsername(TestConstants.TEST_USERNAME);
 
         // When
         User savedUser = userRepository.save(user);
@@ -33,14 +34,14 @@ class UserRepositoryTest {
 
         // Then
         assertNotNull(savedUser.getId());
-        assertEquals("testUser", savedUser.getUsername());
+        assertEquals(TestConstants.TEST_USERNAME, savedUser.getUsername());
     }
 
     @Test
     void testFindById() {
         // Given
         User user = new User();
-        user.setUsername("findByIdTest");
+        user.setUsername(TestConstants.FIND_BY_ID_TEST);
         User savedUser = entityManager.persistAndFlush(user);
 
         // When
@@ -68,16 +69,16 @@ class UserRepositoryTest {
     void testUpdateUser() {
         // Given
         User user = new User();
-        user.setUsername("originalUsername");
+        user.setUsername(TestConstants.ORIGINAL_USERNAME);
         User savedUser = entityManager.persistAndFlush(user);
 
         // When
-        savedUser.setUsername("updatedUsername");
+        savedUser.setUsername(TestConstants.UPDATED_USERNAME);
         User updatedUser = userRepository.save(savedUser);
         entityManager.flush();
 
         // Then
-        assertEquals("updatedUsername", updatedUser.getUsername());
+        assertEquals(TestConstants.UPDATED_USERNAME, updatedUser.getUsername());
         assertEquals(savedUser.getId(), updatedUser.getId());
     }
 
@@ -85,7 +86,7 @@ class UserRepositoryTest {
     void testDeleteUser() {
         // Given
         User user = new User();
-        user.setUsername("userToDelete");
+        user.setUsername(TestConstants.USER_TO_DELETE);
         User savedUser = entityManager.persistAndFlush(user);
 
         // When
@@ -101,11 +102,11 @@ class UserRepositoryTest {
     void testFindAllUsers() {
         // Given
         User user1 = new User();
-        user1.setUsername("user1");
+        user1.setUsername(TestConstants.USER_1);
         User user2 = new User();
-        user2.setUsername("user2");
+        user2.setUsername(TestConstants.USER_2);
         User user3 = new User();
-        user3.setUsername("user3");
+        user3.setUsername(TestConstants.USER_3);
 
         entityManager.persistAndFlush(user1);
         entityManager.persistAndFlush(user2);
@@ -129,9 +130,9 @@ class UserRepositoryTest {
     void testCountUsers() {
         // Given
         User user1 = new User();
-        user1.setUsername("user1");
+        user1.setUsername(TestConstants.USER_1);
         User user2 = new User();
-        user2.setUsername("user2");
+        user2.setUsername(TestConstants.USER_2);
 
         entityManager.persistAndFlush(user1);
         entityManager.persistAndFlush(user2);
@@ -147,7 +148,7 @@ class UserRepositoryTest {
     void testExistsById() {
         // Given
         User user = new User();
-        user.setUsername("existsTest");
+        user.setUsername(TestConstants.EXISTS_TEST);
         User savedUser = entityManager.persistAndFlush(user);
 
         // When & Then

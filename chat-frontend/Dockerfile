@@ -1,5 +1,5 @@
-# Multi-stage build for React frontend
-FROM node:18-alpine AS frontend-builder
+# Multi-stage build for React frontend (node:22 LTS - fixes CVE in Node 18)
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app
 
