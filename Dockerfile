@@ -1,5 +1,6 @@
 # Multi-stage build for Node.js backend
-FROM node:18-alpine AS backend-builder
+# node:22-alpine LTS - fixes CVE-2025-* (race condition, symlink, directory traversal, etc.)
+FROM node:22-alpine AS backend-builder
 
 WORKDIR /app
 
@@ -13,7 +14,7 @@ RUN npm ci --only=production
 COPY server/src ./src
 
 # Runtime stage
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 

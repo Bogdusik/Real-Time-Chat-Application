@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const sockjs = require('sockjs');
 const cors = require('cors');
+const helmet = require('helmet');
 const chatController = require('./controllers/chatController');
 const websocketHandler = require('./websocket/websocketHandler');
 const { initializeDatabase } = require('./database/db');
@@ -9,6 +10,10 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// Security: hide X-Powered-By, set secure headers (CWE-200)
+app.use(helmet({ contentSecurityPolicy: false }));
+app.disable('x-powered-by');
 
 // Middleware
 app.use(cors({
@@ -31,7 +36,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Chat API is running' });
 });
 
-// Create HTTP server
+// Create HTTP server (CWE-319: in production use HTTPS or reverse proxy with TLS)
 const server = http.createServer(app);
 
 // SockJS server for WebSocket connections

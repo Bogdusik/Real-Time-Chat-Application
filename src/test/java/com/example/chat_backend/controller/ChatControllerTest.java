@@ -3,6 +3,7 @@ package com.example.chat_backend.controller;
 import com.example.chat_backend.entity.Message;
 import com.example.chat_backend.entity.User;
 import com.example.chat_backend.repository.MessageRepository;
+import com.example.chat_backend.TestConstants;
 import com.example.chat_backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,11 +41,11 @@ class ChatControllerTest {
     void setUp() {
         testUser = new User();
         testUser.setId(1L);
-        testUser.setUsername("testUser");
+        testUser.setUsername(TestConstants.TEST_USERNAME);
 
         testMessage = new Message();
         testMessage.setId(1L);
-        testMessage.setContent("Test message");
+        testMessage.setContent(TestConstants.TEST_MESSAGE);
         testMessage.setUser(testUser);
         testMessage.setTimestamp(LocalDateTime.now());
     }
@@ -62,7 +63,7 @@ class ChatControllerTest {
         // Then
         assertEquals(expectedMessages, actualMessages);
         assertEquals(1, actualMessages.size());
-        assertEquals("Test message", actualMessages.get(0).getContent());
+        assertEquals(TestConstants.TEST_MESSAGE, actualMessages.get(0).getContent());
         verify(messageRepository, times(1))
                 .findAll(Sort.by(Sort.Direction.ASC, "timestamp"));
     }
@@ -87,7 +88,7 @@ class ChatControllerTest {
     void testSendMessageWithExistingUser() {
         // Given
         Message inputMessage = new Message();
-        inputMessage.setContent("New message");
+        inputMessage.setContent(TestConstants.NEW_MESSAGE);
         inputMessage.setUser(testUser);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
@@ -98,7 +99,7 @@ class ChatControllerTest {
 
         // Then
         assertNotNull(result);
-        assertEquals("New message", result.getContent());
+        assertEquals(TestConstants.NEW_MESSAGE, result.getContent());
         assertEquals(testUser, result.getUser());
         assertNotNull(result.getTimestamp());
         
@@ -153,7 +154,7 @@ class ChatControllerTest {
     void testSendMessageWithUserWithoutId() {
         // Given
         User userWithoutId = new User();
-        userWithoutId.setUsername("userWithoutId");
+        userWithoutId.setUsername(TestConstants.USER_WITHOUT_ID);
         
         Message inputMessage = new Message();
         inputMessage.setContent("Message from user without ID");
