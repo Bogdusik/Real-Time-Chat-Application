@@ -1,5 +1,7 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
+const fs = require('fs');
 const sockjs = require('sockjs');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -36,8 +38,25 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Chat API is running' });
 });
 
-// Create HTTP server (CWE-319: in production use HTTPS or reverse proxy with TLS)
-const server = http.createServer(app);
+// CWE-319: Use HTTPS when TLS certs are provided (production), else HTTP (dev)
+const useHttps = process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH;
+let server;
+if (useHttps) {
+  try {
+    server = https.createServer(
+      {
+        key: fs.readFileSync(process.env.SSL_KEY_PATH),
+        cert: fs.readFileSync(process.env.SSL_CERT_PATH),
+      },
+      app
+    );
+  } catch (err) {
+    console.error('HTTPS config failed, falling back to HTTP:', err.message);
+    server = http.createServer(app);
+  }
+} else {
+  server = http.createServer(app);
+}
 
 // SockJS server for WebSocket connections
 const sockjsServer = sockjs.createServer({
@@ -58,9 +77,10 @@ sockjsServer.installHandlers(server, { prefix: '/ws' });
 // Start server only if not in test environment
 if (process.env.NODE_ENV !== 'test') {
   server.listen(PORT, () => {
-    console.log(`🚀 Chat server running on port ${PORT}`);
-    console.log(`📡 WebSocket endpoint: http://localhost:${PORT}/ws`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    const protocol = useHttps ? 'https' : 'http';
+    console.log(`🚀 Chat server running on port ${PORT} (${protocol})`);
+    console.log(`📡 WebSocket endpoint: ${protocol}://localhost:${PORT}/ws`);
+    console.log(`📊 Health check: ${protocol}://localhost:${PORT}/health`);
   });
 }
 
