@@ -2,12 +2,6 @@
 
 A full-stack real-time chat application built with Node.js, Express, and React. Features instant messaging via WebSocket (STOMP protocol via SockJS), message persistence in PostgreSQL, and a responsive Material-UI interface. Perfect for learning WebSocket-based communication in a full JavaScript stack.
 
-## Demo
-
-![Chat Interface](screenshots/chat-interface.png)
-![Real-Time Messaging](screenshots/realtime-messaging.png)
-![Responsive Design](screenshots/responsive.png)
-
 ## Why It's Cool
 
 - **Real-Time Communication**: Instant messaging without page reloads using WebSocket (STOMP via SockJS) for bidirectional communication
