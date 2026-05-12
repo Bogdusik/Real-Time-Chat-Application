@@ -11,7 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -52,36 +53,27 @@ class ChatControllerTest {
 
     @Test
     void testGetMessages() {
-        // Given
         List<Message> expectedMessages = Arrays.asList(testMessage);
-        when(messageRepository.findAll(Sort.by(Sort.Direction.ASC, "timestamp")))
-                .thenReturn(expectedMessages);
+        when(messageRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(expectedMessages));
 
-        // When
-        List<Message> actualMessages = chatController.getMessages();
+        List<Message> actualMessages = chatController.getMessages(0, 50);
 
-        // Then
         assertEquals(expectedMessages, actualMessages);
         assertEquals(1, actualMessages.size());
         assertEquals(TestConstants.TEST_MESSAGE, actualMessages.get(0).getContent());
-        verify(messageRepository, times(1))
-                .findAll(Sort.by(Sort.Direction.ASC, "timestamp"));
+        verify(messageRepository, times(1)).findAll(any(Pageable.class));
     }
 
     @Test
     void testGetMessagesEmptyList() {
-        // Given
-        List<Message> emptyList = Arrays.asList();
-        when(messageRepository.findAll(Sort.by(Sort.Direction.ASC, "timestamp")))
-                .thenReturn(emptyList);
+        when(messageRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Arrays.asList()));
 
-        // When
-        List<Message> actualMessages = chatController.getMessages();
+        List<Message> actualMessages = chatController.getMessages(0, 50);
 
-        // Then
         assertTrue(actualMessages.isEmpty());
-        verify(messageRepository, times(1))
-                .findAll(Sort.by(Sort.Direction.ASC, "timestamp"));
+        verify(messageRepository, times(1)).findAll(any(Pageable.class));
     }
 
     @Test

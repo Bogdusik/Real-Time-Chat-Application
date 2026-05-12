@@ -1,6 +1,8 @@
 package com.example.chat_backend.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
@@ -10,7 +12,9 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Size(max = 5000)
+    @Column(nullable = false, length = 5000)
     private String content;
 
     @Column(nullable = false)
@@ -20,7 +24,6 @@ public class Message {
     @JoinColumn(name = "user_id")
     private User user;
 
-    // Геттеры и сеттеры вручную
     public Long getId() {
         return id;
     }

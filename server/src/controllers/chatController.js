@@ -7,10 +7,7 @@ class ChatController {
       res.json(messages);
     } catch (error) {
       console.error('Error fetching messages:', error);
-      res.status(500).json({ 
-        error: 'Failed to fetch messages',
-        message: error.message 
-      });
+      res.status(500).json({ error: 'Failed to fetch messages' });
     }
   }
 

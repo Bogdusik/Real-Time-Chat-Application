@@ -1,14 +1,11 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import Chat from '../Chat';
-
-// All mocks are in setupTests.js
 
 describe('Chat Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset fetch mock
-    fetch.mockImplementation(() => 
+    fetch.mockImplementation(() =>
       Promise.resolve({
         json: () => Promise.resolve([]),
         ok: true,
@@ -18,14 +15,30 @@ describe('Chat Component', () => {
     );
   });
 
-  it('renders chat interface', async () => {
-    render(<Chat />);
-    await waitFor(() => {
-      expect(screen.getByText(/chat using websocket/i)).toBeInTheDocument();
+  it('renders username entry form initially', async () => {
+    await act(async () => {
+      render(<Chat />);
     });
+    expect(screen.getByText(/enter your name to join/i)).toBeInTheDocument();
   });
 
-  it('loads messages on mount', async () => {
+  it('join button is disabled when username is empty', async () => {
+    await act(async () => {
+      render(<Chat />);
+    });
+    expect(screen.getByRole('button', { name: /join/i })).toBeDisabled();
+  });
+
+  it('join button is enabled when username is entered', async () => {
+    await act(async () => {
+      render(<Chat />);
+    });
+    const input = screen.getByLabelText(/your name/i);
+    fireEvent.change(input, { target: { value: 'testuser' } });
+    expect(screen.getByRole('button', { name: /join/i })).not.toBeDisabled();
+  });
+
+  it('loads messages history on mount', async () => {
     const mockMessages = [
       {
         id: 1,
@@ -35,7 +48,7 @@ describe('Chat Component', () => {
       }
     ];
 
-    fetch.mockImplementation(() => 
+    fetch.mockImplementation(() =>
       Promise.resolve({
         json: () => Promise.resolve(mockMessages),
         ok: true,
@@ -44,19 +57,10 @@ describe('Chat Component', () => {
       })
     );
 
-    render(<Chat />);
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('http://localhost:8080/api/messages');
+    await act(async () => {
+      render(<Chat />);
     });
-  });
 
-  it('displays connection status', async () => {
-    render(<Chat />);
-    // Component should render connection status
-    await waitFor(() => {
-      expect(screen.getByText(/chat using websocket/i)).toBeInTheDocument();
-    });
+    expect(fetch).toHaveBeenCalledWith('http://localhost:8080/api/messages');
   });
 });
-
