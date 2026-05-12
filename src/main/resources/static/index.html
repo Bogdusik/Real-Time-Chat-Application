@@ -101,7 +101,7 @@
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function (frame) {
-            console.log('Подключено: ' + frame);
+            console.log('Connected: ' + frame);
             stompClient.subscribe('/topic/messages', function (messageOutput) {
                 showMessage(JSON.parse(messageOutput.body));
             });
@@ -112,7 +112,7 @@
         const input = document.getElementById("messageInput");
         const message = {
             content: input.value,
-            user: { id: 1 } // поставь id существующего пользователя
+            user: { id: 1 }
         };
         stompClient.send("/app/sendMessage", {}, JSON.stringify(message));
         input.value = '';

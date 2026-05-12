@@ -35,9 +35,8 @@ class Message {
   static async create(messageData) {
     const { content, user } = messageData;
     const userId = user?.id || null;
-    
-    // If user ID is provided, verify user exists
-    let finalUserId = userId;
+
+    let finalUserId = null;
     if (userId) {
       const userResult = await pool.query('SELECT id FROM "user" WHERE id = $1', [userId]);
       if (userResult.rows.length > 0) {
@@ -46,35 +45,25 @@ class Message {
     }
 
     const query = `
-      INSERT INTO message (content, timestamp, user_id)
-      VALUES ($1, CURRENT_TIMESTAMP, $2)
-      RETURNING 
-        id,
-        content,
-        timestamp,
-        user_id
+      WITH inserted AS (
+        INSERT INTO message (content, timestamp, user_id)
+        VALUES ($1, CURRENT_TIMESTAMP, $2)
+        RETURNING id, content, timestamp, user_id
+      )
+      SELECT i.id, i.content, i.timestamp,
+             u.id AS uid, u.username
+      FROM inserted i
+      LEFT JOIN "user" u ON i.user_id = u.id
     `;
 
     const result = await pool.query(query, [content, finalUserId]);
     const row = result.rows[0];
-    
-    // Fetch user data if user_id exists
-    let userData = null;
-    if (row.user_id) {
-      const userResult = await pool.query('SELECT id, username FROM "user" WHERE id = $1', [row.user_id]);
-      if (userResult.rows.length > 0) {
-        userData = {
-          id: userResult.rows[0].id,
-          username: userResult.rows[0].username
-        };
-      }
-    }
-    
+
     return {
       id: row.id,
       content: row.content,
       timestamp: row.timestamp,
-      user: userData
+      user: row.uid ? { id: row.uid, username: row.username } : null
     };
   }
 }

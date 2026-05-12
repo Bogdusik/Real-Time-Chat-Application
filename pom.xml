@@ -63,9 +63,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
-
 		<!-- PostgreSQL Driver (42.7.7+ fixes CWE-303 auth algorithm) -->
 		<dependency>
 			<groupId>org.postgresql</groupId>

@@ -106,12 +106,26 @@ function websocketHandler(sockjsServer, chatController) {
 
         if (frame.command === 'SEND') {
           const destination = frame.headers.destination;
-          
+
           if (destination === '/app/sendMessage') {
-            // Parse message body
             const messageData = JSON.parse(frame.body);
-            
-            // Save message to database
+
+            if (!messageData.content || !messageData.content.trim()) {
+              const errorFrame = createStompFrame('ERROR', {
+                'message': 'Message content cannot be empty'
+              }, JSON.stringify({ error: 'Message content cannot be empty' }));
+              conn.write(errorFrame);
+              return;
+            }
+
+            if (messageData.content.length > 5000) {
+              const errorFrame = createStompFrame('ERROR', {
+                'message': 'Message content exceeds maximum length'
+              }, JSON.stringify({ error: 'Message content exceeds maximum length' }));
+              conn.write(errorFrame);
+              return;
+            }
+
             const savedMessage = await chatController.sendMessage(messageData);
             
             // Broadcast to all connected clients subscribed to /topic/messages
@@ -148,8 +162,8 @@ function websocketHandler(sockjsServer, chatController) {
       } catch (error) {
         console.error('Error handling WebSocket message:', error);
         const errorFrame = createStompFrame('ERROR', {
-          'message': error.message
-        }, JSON.stringify({ error: error.message }));
+          'message': 'Failed to process message'
+        }, JSON.stringify({ error: 'Failed to process message' }));
         conn.write(errorFrame);
       }
     });
