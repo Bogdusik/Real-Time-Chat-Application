@@ -42,3 +42,6 @@ node_modules/
 server/.env
 chat-frontend/.env
 chat-frontend/.env.local
+
+### macOS ###
+.DS_Store
