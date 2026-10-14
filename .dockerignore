@@ -1,37 +1,13 @@
-# Maven
-target/
-!.mvn/wrapper/maven-wrapper.jar
-.mvn/wrapper/maven-wrapper.properties
-
-# IDE
-.idea/
-*.iml
-.vscode/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Git
+# Build context of the backend image: only the Maven wrapper, pom.xml and src/ are needed
 .git/
-.gitignore
-
-# Node modules (frontend)
-chat-frontend/node_modules/
-chat-frontend/build/
-chat-frontend/.env.local
-chat-frontend/.env.development.local
-chat-frontend/.env.test.local
-chat-frontend/.env.production.local
-
-# Logs
-*.log
-logs/
-
-# Test files
-**/test/
-**/__tests__/
-
+.github/
+.idea/
+.vscode/
+*.iml
+target/
+chat-frontend/
+*.md
+.env
+.env.*
+!.env.example
+.DS_Store
