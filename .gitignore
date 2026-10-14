@@ -39,7 +39,6 @@ node_modules/
 .env
 .env.local
 .env.*.local
-server/.env
 chat-frontend/.env
 chat-frontend/.env.local
 
