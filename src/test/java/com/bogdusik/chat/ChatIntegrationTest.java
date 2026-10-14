@@ -133,11 +133,14 @@ class ChatIntegrationTest {
 
         sender.send("/app/sendMessage", new SendMessageRequest("   ", new SendMessageRequest.Sender(alice.id())));
         sender.send("/app/sendMessage", new SendMessageRequest("Hello", new SendMessageRequest.Sender(9_999L)));
+        sender.send("/app/sendMessage", "just a string");
 
         assertThat(errors.poll(TIMEOUT.toSeconds(), TimeUnit.SECONDS))
                 .isEqualTo(new ErrorResponse("Message content must not be blank"));
         assertThat(errors.poll(TIMEOUT.toSeconds(), TimeUnit.SECONDS))
                 .isEqualTo(new ErrorResponse("Unknown sender: user 9999 is not registered"));
+        assertThat(errors.poll(TIMEOUT.toSeconds(), TimeUnit.SECONDS))
+                .isEqualTo(new ErrorResponse("Message body could not be read as a chat message"));
         assertThat(broadcasts.poll(1, TimeUnit.SECONDS)).as("nothing broadcast").isNull();
         assertThat(messages.count()).as("nothing saved").isZero();
     }

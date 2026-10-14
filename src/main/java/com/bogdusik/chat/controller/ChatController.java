@@ -59,7 +59,7 @@ public class ChatController {
     @MessageExceptionHandler(MessageConversionException.class)
     @SendToUser(destinations = ERRORS_QUEUE, broadcast = false)
     public ErrorResponse unreadableMessage(MessageConversionException e) {
-        return new ErrorResponse("Message body is not valid JSON");
+        return new ErrorResponse("Message body could not be read as a chat message");
     }
 
     @MessageExceptionHandler(Exception.class)
