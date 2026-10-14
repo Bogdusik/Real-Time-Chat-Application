@@ -1,31 +1,22 @@
-# Multi-stage build for Node.js backend
-# node:22-alpine LTS - fixes CVE-2025-* (race condition, symlink, directory traversal, etc.)
-FROM node:22-alpine AS backend-builder
+# Spring Boot backend: build with the Maven wrapper, run on a JRE as a non-root user.
 
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /workspace
+
+# dependencies first, so they stay cached while only the sources change
+COPY mvnw pom.xml ./
+COPY .mvn .mvn
+RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
+
+COPY src src
+# tests run in CI (they need Docker for Testcontainers), not inside the image build
+RUN ./mvnw -B -q package -Dmaven.test.skip=true && cp target/chat-*.jar app.jar
+
+
+FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S chat && adduser -S chat -G chat
 WORKDIR /app
-
-# Copy package files
-COPY server/package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
-COPY server/src ./src
-
-# Runtime stage
-FROM node:22-alpine
-
-WORKDIR /app
-
-# Copy dependencies and source from builder
-COPY --from=backend-builder /app/node_modules ./node_modules
-COPY --from=backend-builder /app/src ./src
-COPY server/package.json ./
-
-# Expose port
+COPY --from=build /workspace/app.jar app.jar
+USER chat
 EXPOSE 8080
-
-# Run the application
-CMD ["node", "src/index.js"]
-
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
