@@ -12,6 +12,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Backend address the browser will call; Create React App reads it at build time
+ARG REACT_APP_API_URL=http://localhost:8080
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
 # Build the application
 RUN npm run build
 
