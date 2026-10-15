@@ -47,6 +47,11 @@ export default function Chat() {
           const messageOutput = JSON.parse(msg.body);
           setMessages(prev => [...prev, messageOutput]);
         });
+        // the server answers a rejected message only to its sender, with the reason
+        client.subscribe('/user/queue/errors', (msg) => {
+          const { error } = JSON.parse(msg.body);
+          setSnackbar({ open: true, message: error || 'Message was rejected', severity: 'error' });
+        });
       },
       onDisconnect: () => {
         setConnected(false);
