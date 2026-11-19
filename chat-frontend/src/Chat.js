@@ -4,17 +4,56 @@ import { Client } from '@stomp/stompjs';
 import {
   TextField,
   Button,
-  List,
-  ListItem,
-  Container,
   Box,
   Alert,
-  Card,
-  CardContent,
   Typography,
-  Paper,
-  Snackbar
+  Snackbar,
+  Avatar,
+  IconButton,
+  Paper
 } from '@mui/material';
+
+// A stable colour per username, so each person keeps the same avatar colour.
+const AVATAR_COLORS = ['#f97316', '#22c55e', '#06b6d4', '#a855f7', '#ec4899', '#eab308', '#3b82f6', '#14b8a6'];
+function colorFor(name = '') {
+  let hash = 0;
+  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+}
+
+function initials(name = '?') {
+  return name.trim().slice(0, 2).toUpperCase() || '?';
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+function SendIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M3.4 20.4 21 12 3.4 3.6l-.01 6.53L15 12 3.39 13.87z" />
+    </svg>
+  );
+}
+
+function ConnectionStatus({ connected }) {
+  return (
+    <Box
+      role="status"
+      sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.5, borderRadius: 999,
+        bgcolor: connected ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)',
+        color: connected ? '#4ade80' : '#facc15', fontSize: 13, fontWeight: 600 }}
+    >
+      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'currentColor',
+        boxShadow: connected ? '0 0 0 4px rgba(74,222,128,0.18)' : 'none' }} />
+      {connected ? 'Connected' : 'Connecting…'}
+    </Box>
+  );
+}
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -54,6 +93,10 @@ export default function Chat() {
         });
       },
       onDisconnect: () => {
+        setConnected(false);
+      },
+      // the client reconnects on its own; show that instead of a stale "Connected"
+      onWebSocketClose: () => {
         setConnected(false);
       },
       onStompError: (frame) => {
@@ -125,108 +168,115 @@ export default function Chat() {
     }
   };
 
+  const snackbarEl = (
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={4000}
+      onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    >
+      <Alert severity={snackbar.severity} variant="filled" onClose={() => setSnackbar(s => ({ ...s, open: false }))}>
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+  );
+
+  const shell = { width: '100%', maxWidth: 760, mx: 'auto', bgcolor: 'background.paper',
+    border: '1px solid', borderColor: 'divider', borderRadius: 4, boxShadow: '0 30px 80px rgba(0,0,0,0.45)' };
+
   if (!currentUser) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Container maxWidth="xs">
-          <Card sx={{ p: 3, boxShadow: 4 }}>
-            <CardContent>
-              <Typography variant="h5" gutterBottom align="center">
-                Enter your name to join
-              </Typography>
-              <Box display="flex" gap={2} mt={2}>
-                <TextField
-                  fullWidth
-                  label="Your name"
-                  value={usernameInput}
-                  onChange={(e) => setUsernameInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  inputProps={{ maxLength: 50 }}
-                  autoFocus
-                />
-                <Button variant="contained" onClick={handleJoin} disabled={!usernameInput.trim()}>
-                  Join
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-        </Container>
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert severity={snackbar.severity} onClose={() => setSnackbar(s => ({ ...s, open: false }))}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+      <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', p: 2 }}>
+        <Paper sx={{ ...shell, maxWidth: 420, p: 4 }}>
+          <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 2 }}>Realtime Chat</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.5 }}>Enter your name to join</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1, mb: 3 }}>
+            One room, live over STOMP and WebSocket. The same name brings back the same user.
+          </Typography>
+          <Box display="flex" gap={1.5}>
+            <TextField
+              fullWidth
+              label="Your name"
+              value={usernameInput}
+              onChange={(e) => setUsernameInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              inputProps={{ maxLength: 50 }}
+              autoFocus
+            />
+            <Button variant="contained" onClick={handleJoin} disabled={!usernameInput.trim()} sx={{ px: 3 }}>
+              Join
+            </Button>
+          </Box>
+        </Paper>
+        {snackbarEl}
       </Box>
     );
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <Container maxWidth="sm">
-        {!connected && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            Connecting to WebSocket...
-          </Alert>
-        )}
+    <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', p: { xs: 0, sm: 3 } }}>
+      <Paper sx={{ ...shell, height: { xs: '100vh', sm: 'min(760px, 90vh)' }, display: 'flex', flexDirection: 'column',
+        borderRadius: { xs: 0, sm: 4 }, overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2.5, py: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}># general</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>Signed in as {username}</Typography>
+          </Box>
+          <ConnectionStatus connected={connected} />
+          <Avatar sx={{ width: 34, height: 34, fontSize: 14, fontWeight: 700, bgcolor: colorFor(username) }}>{initials(username)}</Avatar>
+        </Box>
 
-        <Card sx={{ p: 3, boxShadow: 4 }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom align="center">
-              Chat — {username}
+        <Box sx={{ flex: 1, overflowY: 'auto', px: { xs: 1.5, sm: 2.5 }, py: 2, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+          {messages.length === 0 && (
+            <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', mt: 6 }}>
+              No messages yet. Say hello.
             </Typography>
+          )}
+          {messages.map((msg) => {
+            const author = msg.user?.username || 'Anonymous';
+            const own = currentUser && msg.user?.id === currentUser.id;
+            return (
+              <Box key={msg.id} data-own={own ? 'true' : 'false'}
+                sx={{ display: 'flex', gap: 1, alignItems: 'flex-end', flexDirection: own ? 'row-reverse' : 'row' }}>
+                {!own && (
+                  <Avatar sx={{ width: 30, height: 30, fontSize: 12, fontWeight: 700, bgcolor: colorFor(author) }}>{initials(author)}</Avatar>
+                )}
+                <Box sx={{ maxWidth: '72%', px: 1.75, py: 1, borderRadius: 3,
+                  borderBottomRightRadius: own ? 6 : 24, borderBottomLeftRadius: own ? 24 : 6,
+                  bgcolor: own ? 'primary.main' : 'rgba(255,255,255,0.06)', color: own ? '#04130f' : 'text.primary' }}>
+                  {!own && (
+                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: colorFor(author) }}>{author}</Typography>
+                  )}
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{msg.content}</Typography>
+                  <Typography variant="caption" sx={{ display: 'block', textAlign: 'right', opacity: 0.6, fontSize: 11, mt: 0.25 }}>
+                    {formatTime(msg.timestamp)}
+                  </Typography>
+                </Box>
+              </Box>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </Box>
 
-            <Box display="flex" gap={2} mb={2}>
-              <TextField
-                fullWidth
-                label="Enter message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={!connected}
-                inputProps={{ maxLength: 5000 }}
-              />
-              <Button variant="contained" onClick={sendMessage} disabled={!connected}>
-                Send
-              </Button>
-            </Box>
-
-            <Paper sx={{ maxHeight: 300, overflowY: 'auto', p: 1 }}>
-              <List>
-                {messages.map((msg) => (
-                  <ListItem key={msg.id} sx={{ mb: 1, p: 1, borderRadius: 2, backgroundColor: '#f5f5f5' }}>
-                    <Box>
-                      <Typography variant="subtitle2" color="primary">
-                        {msg.user?.username || 'Anonymous'}:
-                      </Typography>
-                      <Typography variant="body1">{msg.content}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {msg.timestamp ? `${msg.timestamp}` : ''}
-                      </Typography>
-                    </Box>
-                  </ListItem>
-                ))}
-                <div ref={messagesEndRef} />
-              </List>
-            </Paper>
-          </CardContent>
-        </Card>
-      </Container>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar(s => ({ ...s, open: false }))}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', p: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder={connected ? 'Message #general' : 'Waiting for the connection…'}
+            inputProps={{ maxLength: 5000, 'aria-label': 'Enter message' }}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={!connected}
+          />
+          <IconButton aria-label="Send" onClick={sendMessage} disabled={!connected || !message.trim()}
+            sx={{ bgcolor: 'primary.main', color: '#04130f', '&:hover': { bgcolor: 'primary.light' },
+              '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.08)' } }}>
+            <SendIcon />
+          </IconButton>
+        </Box>
+      </Paper>
+      {snackbarEl}
     </Box>
   );
 }
