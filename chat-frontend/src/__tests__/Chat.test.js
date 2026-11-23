@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import Chat from '../Chat';
+import { Client } from '@stomp/stompjs';
 
 describe('Chat Component', () => {
   beforeEach(() => {
@@ -62,5 +63,61 @@ describe('Chat Component', () => {
     });
 
     expect(fetch).toHaveBeenCalledWith('http://localhost:8080/api/messages');
+  });
+
+  describe('after joining', () => {
+    const history = [
+      { id: 1, content: 'Morning! Deploy is green', timestamp: '2026-11-19T16:10:00', user: { id: 2, username: 'Bob' } },
+      { id: 2, content: 'Great, merging now', timestamp: '2026-11-19T16:11:00', user: { id: 1, username: 'Alice' } }
+    ];
+
+    const join = async () => {
+      // CRA resets mock implementations before each test, so give the STOMP client one here
+      Client.mockImplementation(() => ({
+        activate: jest.fn(),
+        deactivate: jest.fn(),
+        subscribe: jest.fn(),
+        publish: jest.fn(),
+        connected: true
+      }));
+      fetch.mockImplementation((url) =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(String(url).endsWith('/api/users/register') ? { id: 1, username: 'Alice' } : history)
+        })
+      );
+      await act(async () => {
+        render(<Chat />);
+      });
+      fireEvent.change(screen.getByLabelText(/your name/i), { target: { value: 'Alice' } });
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /join/i }));
+      });
+    };
+
+    it('shows the connection state and switches to connected', async () => {
+      await join();
+      expect(screen.getByText(/connecting/i)).toBeInTheDocument();
+      const config = Client.mock.calls[Client.mock.calls.length - 1][0];
+      await act(async () => {
+        config.onConnect();
+      });
+      expect(screen.getByText(/^connected$/i)).toBeInTheDocument();
+    });
+
+    it('puts your own messages on the right and others on the left', async () => {
+      await join();
+      const own = screen.getByText('Great, merging now').closest('[data-own]');
+      const other = screen.getByText('Morning! Deploy is green').closest('[data-own]');
+      expect(own).toHaveAttribute('data-own', 'true');
+      expect(other).toHaveAttribute('data-own', 'false');
+      expect(screen.getByText('Bob')).toBeInTheDocument();
+    });
+
+    it('shows times as hours and minutes, not raw ISO strings', async () => {
+      await join();
+      expect(screen.queryByText(/2026-11-19T16:10:00/)).not.toBeInTheDocument();
+      expect(screen.getByText(/16:10/)).toBeInTheDocument();
+    });
   });
 });
