@@ -1,6 +1,23 @@
+<div align="center">
+
+<img src="docs/media/chat.gif" alt="Two browser windows side by side: Alice and Bob join the same room and every message appears in the other window as soon as it is sent" width="900">
+
 # Real-Time Chat Application
 
-A group chat where messages travel over STOMP on WebSocket (with a SockJS fallback) between a React client and a Spring Boot backend, and are stored in PostgreSQL.
+**A group chat where messages travel over STOMP on WebSocket (with a SockJS fallback) between a React client and a Spring Boot backend, and are stored in PostgreSQL.**
+
+[![CI](https://github.com/Bogdusik/Real-Time-Chat-Application/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Bogdusik/Real-Time-Chat-Application/actions/workflows/ci.yml)
+![Java 17](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot 3.4](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?logo=springboot&logoColor=white)
+![STOMP over WebSocket](https://img.shields.io/badge/STOMP-WebSocket_%2B_SockJS-2dd4bf)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/run-docker_compose_up-2496ED?logo=docker&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/license-MIT-2EA44F)](LICENSE)
+
+[Architecture](#architecture) · [Run with Docker Compose](#run-with-docker-compose) · [API](#api) · [Design decisions](#design-decisions)
+
+</div>
 
 ## Architecture
 
@@ -36,6 +53,23 @@ A user joins with a name (`POST /api/users/register`); the client then loads the
 - Server-side validation of messages and usernames, with the reason shown to the sender in the UI.
 - Each client's frames are handled in the order they arrive, so one user's messages are saved and broadcast in the order they were sent.
 - Allowed browser origins for both the REST API and the STOMP endpoint come from configuration; other origins get `403`.
+
+## Screens
+
+<table>
+<tr>
+<td width="62%" valign="top">
+<img src="docs/media/join.png" alt="Join screen: a dark card asking for a display name, with a Join button"><br>
+<b>Join with a name.</b> No passwords: the same name brings back the same user.
+</td>
+<td width="38%" valign="top">
+<img src="docs/media/mobile.png" alt="The chat on a phone: header with a Connected indicator, message bubbles and the input at the bottom"><br>
+<b>On a phone.</b> The same layout, full screen.
+</td>
+</tr>
+</table>
+
+The header shows whether the STOMP session is connected; while the client reconnects it reads "Connecting…" and the input is disabled.
 
 ## Tech stack
 
@@ -174,7 +208,7 @@ cd chat-frontend && npm test       # frontend
 | Unit (Bean Validation) | `RequestValidationTest` | the rules on the STOMP payload and the registration body |
 | Repository (`@DataJpaTest`, PostgreSQL 16 in Testcontainers) | `MessageRepositoryTest` | the latest-first history query with senders fetched in the same query, rows without a sender, the unique username constraint |
 | Integration (`@SpringBootTest` on a random port, PostgreSQL in Testcontainers) | `ChatIntegrationTest` | a STOMP client over SockJS sends a message, a second client receives the broadcast, the row is in the database and `GET /api/messages` returns it; invalid and unreadable messages reach only the sender's error queue and are neither broadcast nor saved |
-| Frontend (Jest + React Testing Library) | `App.test.js`, `Chat.test.js` | the join form, the Join button state, the history request on mount (STOMP and SockJS are mocked) |
+| Frontend (Jest + React Testing Library) | `App.test.js`, `Chat.test.js` | the join form, the Join button state, the history request on mount, the Connected / Connecting indicator, your messages on the right and others on the left, times shown as HH:mm (STOMP and SockJS are mocked) |
 
 CI (`.github/workflows/ci.yml`) runs the backend suite with `./mvnw -B verify` and the frontend tests and production build on every push to `main` and every pull request.
 
@@ -222,3 +256,7 @@ CI (`.github/workflows/ci.yml`) runs the backend suite with `./mvnw -B verify` a
 - Exposing JPA entities in responses breaks in quiet ways: a lazy association serialises as a Hibernate proxy. Mapping to records (DTOs) at the service boundary removed that class of bug and decoupled the wire format from the schema.
 - Timestamps need one precision end to end: the JVM clock had sub-microsecond digits, PostgreSQL keeps microseconds, so the broadcast and the history disagreed until the service truncated to milliseconds.
 - Testcontainers runs the repository and integration tests against the same PostgreSQL version as Docker Compose; it also showed that the Testcontainers version managed by Spring Boot 3.4.11 is too old for Docker Engine 29.
+
+## License
+
+[MIT](LICENSE)
